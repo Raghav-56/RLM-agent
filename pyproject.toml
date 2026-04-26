@@ -1,0 +1,17 @@
+[project]
+name = "rlm-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "rlms",
+]
+
+# Submodules
+[tool.uv.workspace]
+members = ["rlm"]
+
+[tool.uv.sources]
+rlm = { workspace = true }
+rlms = { workspace = true }
