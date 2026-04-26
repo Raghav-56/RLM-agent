@@ -77,8 +77,10 @@ flowchart LR
 
 - CLI direct: python src/main.py --prompt "your question"
 - CLI interactive: python src/main.py
-- API mode (preferred): python src/main.py serve --host 127.0.0.1 --port 8000
-- API mode (legacy flag): python src/main.py --serve-api --host 127.0.0.1 --port 8000
+- API mode (preferred): python src/main.py serve
+- API mode (legacy flag): python src/main.py --serve-api
+- Render deploys: the server binds to HOST/PORT automatically (defaults: 0.0.0.0:8000).
+- Local override example: python src/main.py serve --host 127.0.0.1 --port 8000
 - Website: open http://127.0.0.1:8000/ after starting API mode.
 - Interactive UI can send user_query + optional data directly to POST /completion.
 - API docs: http://127.0.0.1:8000/docs
