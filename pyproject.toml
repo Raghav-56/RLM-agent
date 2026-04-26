@@ -5,13 +5,23 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi",
+    "python-dotenv>=1.2.2",
     "rlms",
+    "typer",
+    "uvicorn",
 ]
+
+[tool.uv]
+package = false 
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 # Submodules
 [tool.uv.workspace]
 members = ["rlm"]
 
 [tool.uv.sources]
-rlm = { workspace = true }
 rlms = { workspace = true }

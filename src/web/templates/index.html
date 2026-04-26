@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RLM Agent Server</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="shell">
+      <header class="hero reveal">
+        <p class="eyebrow">RLM Agent</p>
+        <h1>Prompt Gateway</h1>
+        <p class="lead">
+          Send user queries and optional context data to the FastAPI completion endpoint.
+        </p>
+      </header>
+
+      <section class="grid">
+        <article class="panel reveal delay-1">
+          <h2>Run completion</h2>
+          <p class="hint">Launch server from CLI: <code>python src/main.py serve --host 127.0.0.1 --port 8000</code></p>
+          <form id="completion-form" class="form">
+            <label for="user-query">User query</label>
+            <textarea id="user-query" name="user_query" rows="5" placeholder="Ask something useful..." required></textarea>
+
+            <label for="data">Context data (optional)</label>
+            <textarea id="data" name="data" rows="6" placeholder="Paste additional data for prompt context"></textarea>
+
+            <div class="actions">
+              <button type="submit" id="submit-btn">Send to /completion</button>
+              <button type="button" id="clear-btn" class="secondary">Clear</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel reveal delay-2">
+          <h2>Server status</h2>
+          <p class="status-line">Health: <span id="health-pill" class="pill">Checking</span></p>
+          <div class="endpoints">
+            <a class="chip" href="/health" target="_blank" rel="noreferrer">GET /health</a>
+            <a class="chip" href="/docs" target="_blank" rel="noreferrer">OpenAPI docs</a>
+          </div>
+
+          <h3>Response</h3>
+          <pre id="response-box" class="response">No response yet.</pre>
+        </article>
+      </section>
+
+      <div id="toast" class="toast" aria-live="polite" role="status"></div>
+    </section>
+  </main>
+
+  <template id="sample-request-template">
+{
+  "user_query": "Summarize this data",
+  "data": "Optional payload"
+}
+  </template>
+
+  <aside class="sample reveal delay-3">
+    <h2>Request shape</h2>
+    <pre id="sample-request"></pre>
+  </aside>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

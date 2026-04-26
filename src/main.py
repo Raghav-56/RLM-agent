@@ -1,4 +1,4 @@
-from src.cli_app import app
+from cli_app import app
 
 
 if __name__ == "__main__":
