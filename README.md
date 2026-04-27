@@ -80,7 +80,8 @@ flowchart LR
 - API mode (preferred): python src/main.py serve
 - API mode (legacy flag): python src/main.py --serve-api
 - Render deploys: the server binds to HOST/PORT automatically (defaults: 0.0.0.0:8000).
-- Local override example: python src/main.py serve --host 127.0.0.1 --port 8000
+- Local development: python src/main.py serve --host localhost --port 8000
+- Deployment example: HOST=0.0.0.0 PORT=8000 python src/main.py serve
 - Website: open http://127.0.0.1:8000/ after starting API mode.
 - Interactive UI can send user_query + optional data directly to POST /completion.
 - API docs: http://127.0.0.1:8000/docs
