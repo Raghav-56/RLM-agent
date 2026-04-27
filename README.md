@@ -19,87 +19,92 @@ A general purpose connector to run LLMs in a RLM harness.
 }}%%
 flowchart LR
 	subgraph EP[Entry Points]
-		CLI[Typer CLI\nsrc/main.py -> src/cli_app.py]
-		API[FastAPI Server\nsrc/api_server.py]
+		CLI["CLI\nsrc/rlm_agent/cli_app.py"]
+		API["FastAPI\nsrc/rlm_agent/api_server.py"]
 	end
 
 	subgraph PR[Prompt Layer]
-		SP[System Prompt Loader\nsrc/system_prompt.txt]
-		PU[Prompt Utils\nsrc/prompt_utils.py]
-		DS[(Data Source\nStub now, API later)]
+		SP["System Prompt\nsrc/rlm_agent/prompts/system_prompt.txt"]
+		PU["Prompt Utils\nsrc/rlm_agent/prompt_utils.py"]
 	end
 
 	subgraph CORE[Execution Layer]
-		RUN[Runner\nsrc/runner.py]
-		RLM[RLM Engine\nrlm package]
-		ENV[Execution Environment\nlocal / docker / modal / etc]
+		RUN["Runner\nsrc/rlm_agent/runner.py"]
+		RLM["RLM Instance\nfrom rlm package"]
 	end
 
-	subgraph EXT[External Integrations]
-		GEM[Gemini Backend]
-		FUT[Future API Producer\nSends data + user_query]
+	subgraph WEB[Web Layer]
+		ROUTER["Web Router\nsrc/rlm_agent/web/routes.py"]
+		STATIC["Static Assets\nsrc/rlm_agent/web/static/"]
 	end
 
-	CLI -->|prompt| PU
-	API -->|user_query + optional data| RUN
+	CLI -->|user_query| RUN
+	API -->|CompletionRequest| RUN
+	ROUTER -->|GET /| STATIC
+	API -->|mount| STATIC
+	RUN -->|compose| PU
 	SP --> PU
-	DS --> PU
-	PU -->|composed prompt| RUN
-	RUN --> RLM
-	RLM --> ENV
-	RLM --> GEM
-	FUT -. planned input .-> API
-	RUN -->|model response| CLI
-	RUN -->|JSON response| API
+	PU -->|final prompt| RUN
+	RUN -->|RLM instance| RLM
+	RLM -->|completion| RUN
+	RUN -->|response| CLI
+	RUN -->|CompletionResponse| API
 
 	classDef entry fill:#d7ecff,stroke:#1c6ea4,stroke-width:2px,color:#0b253a;
 	classDef prompt fill:#ffeecf,stroke:#d08c00,stroke-width:2px,color:#4a3300;
 	classDef core fill:#dff7e8,stroke:#2c9a63,stroke-width:2px,color:#0d3b25;
-	classDef ext fill:#f1e4ff,stroke:#7b57c2,stroke-width:2px,color:#321a5e;
-	classDef store fill:#ffdfe4,stroke:#c04864,stroke-width:2px,color:#4f1421;
+	classDef web fill:#f1e4ff,stroke:#7b57c2,stroke-width:2px,color:#321a5e;
 
 	class CLI,API entry;
 	class SP,PU prompt;
-	class RUN,RLM,ENV core;
-	class GEM,FUT ext;
-	class DS store;
+	class RUN,RLM core;
+	class ROUTER,STATIC web;
 ```
 
-- CLI and API share the same runner.
-- Prompt composition is centralized in src/prompt_utils.py.
-- The runner is the only place that configures and calls RLM.
-- FastAPI accepts user_query plus optional data payload.
-- Data retrieval is stubbed now and can be replaced by producer API.
-- Website is served at / through src/web/routes.py with static assets in src/web/static/.
-- API errors from model/backend calls are returned as HTTP 503 with details.
+- CLI and API share the same runner (src/rlm_agent/runner.py).
+- Prompt composition centralized in src/rlm_agent/prompt_utils.py.
+- Runner orchestrates prompt building, RLM initialization, and response extraction.
+- FastAPI accepts CompletionRequest with user_query and optional data payload.
+- Data retrieval uses fetch_data_stub() placeholder (can be replaced with actual API integration).
+- Website served at / through src/rlm_agent/web/routes.py with static assets in src/rlm_agent/web/static/.
+- API errors from RLM calls are returned as HTTP 503 with exception details.
 
 ## Usage (user)
 
-- CLI direct: python src/main.py --prompt "your question"
-- CLI interactive: python src/main.py
-- API mode (preferred): python src/main.py serve
-- API mode (legacy flag): python src/main.py --serve-api
-- Render deploys: the server binds to HOST/PORT automatically (defaults: 0.0.0.0:8000).
-- Local development: python src/main.py serve --host localhost --port 8000
-- Deployment example: HOST=0.0.0.0 PORT=8000 python src/main.py serve
-- Website: open http://127.0.0.1:8000/ after starting API mode.
-- Interactive UI can send user_query + optional data directly to POST /completion.
-- API docs: http://127.0.0.1:8000/docs
-- TODO: add curl examples
+- CLI direct: `python -m rlm_agent --prompt "your question"`
+- CLI interactive: `python -m rlm_agent`
+- API mode: `python -m rlm_agent serve`
+- Local development: `python -m rlm_agent serve --host localhost --port 8000`
+- Render deploy: Server binds to HOST/PORT automatically (defaults: 0.0.0.0:8000)
+- Deployment: `HOST=0.0.0.0 PORT=8000 python -m rlm_agent serve`
+- Website: Open http://localhost:8000/ after starting API mode
+- Interactive UI: Send user_query + optional data to POST /completion
+- API docs: http://localhost:8000/docs
 
 ## Usage (developer)
 
 - Core files:
 - src/main.py
-- src/cli_app.py
-- src/api_server.py
-- src/runner.py
-- src/prompt_utils.py
-- src/web/routes.py
-- src/web/templates/index.html
-- src/web/static/site.css
-- src/web/static/app.js
-- Edit src/system_prompt.txt to tune default behavior.
-- Keep prompt assembly changes inside src/prompt_utils.py.
-- Use python src/main.py --help to view CLI commands/options.
-- TODO: add setup, test, and contribution details
+**Core files:**
+- `src/rlm_agent/cli_app.py` — Typer CLI entry point
+- `src/rlm_agent/api_server.py` — FastAPI server and routes
+- `src/rlm_agent/runner.py` — Shared orchestrator
+- `src/rlm_agent/prompt_utils.py` — Prompt composition logic
+- `src/rlm_agent/prompts/system_prompt.txt` — Base system instructions
+- `src/rlm_agent/web/routes.py` — Web UI router
+- `src/rlm_agent/web/templates/index.html` — Web UI template
+- `src/rlm_agent/web/static/site.css` — Web UI styles
+- `src/rlm_agent/web/static/app.js` — Web UI client script
+
+**Configuration (environment variables):**
+- `MODEL` — LM backend (e.g., "gemini", "openai", "anthropic")
+- `MODAL_NAME` — Model name passed to backend
+- `VERBOSE_MODE` — Enable RLM verbose logging (default: "false")
+- `HOST` — Server bind host (default: "0.0.0.0")
+- `PORT` — Server bind port (default: "8000")
+
+**Development:**
+- Edit `src/rlm_agent/prompts/system_prompt.txt` to tune default behavior
+- Keep prompt assembly changes in `src/rlm_agent/prompt_utils.py`
+- Use `python -m rlm_agent --help` to view CLI commands
+- See Architecture.md for detailed component diagram
